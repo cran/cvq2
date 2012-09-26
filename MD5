@@ -1,0 +1,16 @@
+9cf62ac232ba43f64e9236accf24f4ac *DESCRIPTION
+912ee6baf361e7cd76912a2c7d8f52b3 *NAMESPACE
+892da2825a48017b0ced25391a48481f *R/cvq2.R
+00f0def3e9c12325a4f8b2eae328ab5b *R/func.calcRMS.R
+13893a51240e6aeda7eef64ce36f12b6 *R/func.calcXSquare.R
+8ce7819f33964d3e2e5cfc61314148fa *R/func.extendDataframeForRegValues.R
+dc65627a6ba27247364c03c7f9bfe872 *R/func.leaveOneOut.R
+068af29fb36f15cdf5a49e54be337fa7 *R/func.output.PerformanceValues.R
+babb54053b11cadf8fc802f6ed363f79 *R/func.output.coefficients.R
+44006c3c08f70f55697cac4d98b7591f *R/func.output.linearFormula.R
+a52c42916bd22e613cb1a6f61c6729b5 *R/func.predValue.R
+6d6989612ac5a4c4bc9315eb2c694088 *R/func.sortDataColumns.R
+5017f7858bdcde20582f0a93dcd62080 *data/cvq2.setA.rda
+eef3217ae97409676c3de3aa76f1b808 *man/cvq2-package.Rd
+690ec66d225ead183f38eed1ae700db0 *man/cvq2.Rd
+12358a071ad0cc737c810beb44344320 *man/cvq2.setA.Rd
