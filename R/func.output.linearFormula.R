@@ -1,9 +1,12 @@
 func.output.linearFormula <-
 function(coeff, writeOutputTarget){
-  if(names(coeff)[1] == "(Intercept)"){
-    writeLines( paste("General Coefficients: Y = a*X1 + b*X2 + ... + const") , con = writeOutputTarget )
-  }else{
-    writeLines( paste("General Coefficients: Y = a*X1 + b*X2 + ... z*Xn"), con = writeOutputTarget )
-  }
+  if( is.null(writeOutputTarget) )
+    return()
+
+  last.coeff <- "z*Xn"
+  if(names(coeff)[1] == "(Intercept)")
+    last.coeff <- "const"
+
+  writeLines( paste("General Equation: Y = a*X1 + b*X2 + ... + ", last.coeff) , con = writeOutputTarget )
 }
 

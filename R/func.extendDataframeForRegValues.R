@@ -11,7 +11,7 @@ function(extFrame, coeff, cvPre){
       colnames(extFrame)[i+3] <- letters[i]
     }
   }
-  
+
   extFrame
 }
 

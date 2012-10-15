@@ -1,23 +1,35 @@
 func.output.PerformanceValues <-
-function(rmsFR, rmsFRElements, rSqFR, cvElements, cvRep, qSqCV, qSqCVSub, 
-  rmsCV, rmsCVElements, output.round, writeOutputTarget
-){
+function(result, output.round, writeOutputTarget){
+  if( is.null(writeOutputTarget) )
+    return()
+
   writeLines("\n---- RESULTS ----", con = writeOutputTarget)
   writeLines("", con = writeOutputTarget)
 
   writeLines( paste("-- FULL REGRESSION"), con = writeOutputTarget )
-  writeLines( paste("rms (all ",rmsFRElements," elements): \t", round(rmsFR, output.round),sep=""), con = writeOutputTarget )
-  writeLines( paste("r^2: \t\t\t", round(rSqFR, output.round),sep=""), con = writeOutputTarget )
-  writeLines( "", con = writeOutputTarget )
-  
-  writeLines( paste("-- CROSS VALIDATION",sep=""), con = writeOutputTarget )
-  writeLines( paste("# leave out elements: \t\t\t",cvElements,sep=""), con = writeOutputTarget )
-  if(cvRep > 0)
-    writeLines( paste("different runs: \t\t\t",round(cvRep, output.round),sep=""), con = writeOutputTarget )
+  writeLines( paste("#Elements: \t\t",result$r2$elements[1],sep=""), con = writeOutputTarget )
+  writeLines("", con = writeOutputTarget)
 
-  writeLines( paste("rms (",rmsCVElements," elements): \t\t", round(rmsCV, output.round),sep=""), con = writeOutputTarget )
-#  writeLines( paste("q^2 (mean(Y) same as for r^2): \t\t\t\t\t", round(qSqCV, output.round),sep=""), con = writeOutputTarget )
-  writeLines( paste("q^2 (mean(Y) individual for each subset - excluding the leave one out row): \t", round(qSqCVSub, output.round),sep=""), con = writeOutputTarget )
+  writeLines( paste("rms: \t\t\t", round(result$r2$rms[1], output.round),sep=""), con = writeOutputTarget )
+  writeLines( paste("r^2 (use Y_mean): \t", round(result$r2$value[1], output.round),sep=""), con = writeOutputTarget )
+  writeLines( "", con = writeOutputTarget )
+
+  writeLines( paste("-- CROSS VALIDATION",sep=""), con = writeOutputTarget )
+  #number of different test sets is missing
+  writeLines( paste("Split Size Data Set: \t\t",result$cv$split_size_data_set[1],sep=""), con = writeOutputTarget )
+  writeLines( paste("#Splitted Sets: \t\t",result$cv$splitted_sets_count[1],sep=""), con = writeOutputTarget )
+  writeLines("", con = writeOutputTarget)
+  
+  writeLines( paste("#Elements Training Set: \t",result$cv$elements_training_set[1],sep=""), con = writeOutputTarget )
+  writeLines( paste("#Elements Test Set: \t\t",result$cv$elements_test_set[1],sep=""), con = writeOutputTarget )
+  rep.run <- result$cv$repeated_runs[1]
+  if( rep.run > 0)
+    writeLines( paste("different runs: \t\t\t", rep.run, sep="" ), con = writeOutputTarget )
+  writeLines("", con = writeOutputTarget)
+
+  writeLines( paste("rms: \t\t\t\t", round(result$cv$q2$rms[1], output.round),sep=""), con = writeOutputTarget )
+#  writeLines( paste("q^2 (use Y_mean): \t\t\t\t\t", round(result$q2$value[1], output.round),sep=""), con = writeOutputTarget )
+  writeLines( paste("q^2_cv (use Y_mean^training): \t", round(result$cv$q2$value[1], output.round),sep=""), con = writeOutputTarget )
   writeLines("\n---- End RESULTS ----", con = writeOutputTarget)
 }
 

@@ -1,29 +1,74 @@
 \name{cvq2-package}
 \alias{cvq2-package}
 \docType{package}
+\encoding{latin1}
 \title{
 Calculate the predictive squared correlation coefficient.
 }
 \description{
-For small data sets, the calculation of the predictive squared correlation coefficient, q^2, is more accurate than the calculation of the conventional squared correlation coefficient, r^2.
+This package calculates the predictive squared correlation coefficient, \eqn{q^2}{q^2}, and the well known conventional squared correlation coefficient, \eqn{r^2}{r^2}.
+The prediction performance of a model can be indicated with \eqn{q^2}{q^2}, whereas \eqn{r^2}{r^2} is a measure for the calibration performance of a model.
 }
 \details{
 \tabular{ll}{
 Package: \tab cvq2\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2012-09-22\cr
+Version: \tab 1.0.1\cr
+Date: \tab 2012-10-15\cr
 License: \tab GPL v3\cr
 LazyLoad: \tab yes\cr
 }
-This package can be used to calculate the predictive squared correlation coefficient, q^2. 
-\strong{Currently, the calculation of leave-one-out cross validation is implemented only.}
+%% FORMEL BESCHREIBEN
+% y_fit: r^2 - DataSet + External TestSet, Vorhersagewerte aus N Beobachtungen DataSet, y_mean aus y(DataSet)
+% y_pred: q^2 - DataSet + External TestSet, Vorhersagewerte aus N-1 Beobachtungen, exklusive der i-ten Beobachtung, jeder Wert aus TestSet wird N-mal vorhergesagt(?), y_mean ist das Gleiche wie fuer y_fit -> y(DataSet)
+% y_pred: q^2_tr - DataSet + External TestSet, Vorhersagewerte aus N-1 Beobachtungen, exklusive der i-ten Beobachtung, y_mean fuer N-1 y-Werte aus dem Trainingsset 
+% y_pred(N-k): q^2_cv - DataSet -> TrainingSet + TestSet - vorhergesagte Werte Testset, Parameter werden aus Trainingset generiert, y_mean fuer N-k y-Werte aus dem Trainingsset
+%U+2261 kongruent \u2661, \u2263 - 4fach Gleichheitszeichen
+The calculation procedure is as follows:\cr
+For a given data set, a general linear regression is performed, to calculate the conventional squared correlation coefficient, \eqn{r^2}{r^2}:
+\deqn{r^2 = 1-\frac{\sum\limits_{i=1}^N\left( y_i^{fit} - y_i\right)^2}{\sum\limits_{i=1}^N\left( y_i - y_{mean}\right)^2} \equiv 1 - \frac{RSS}{SS}}{ q^2 = 1 - (SIGMA_i=1^N (y_i^fit - y_i)^2 / (SIGMA_i=1^N (y_i - y_mean)^2) \u2261 1 - RSS/SS}
+The observed values of the data set (\eqn{y_i}{y_i}) are compared to the fitted values (\eqn{y_i^{fit}}{y_i^fit}) of the linear regression and yield to the calibration performance of the described model. 
+The denominator complies with the \strong{R}esidual \strong{S}um of \strong{S}quares \emph{RSS}, the difference between the fitted and the observed values.
+The numerator contains the \strong{S}um of \strong{S}quares, which are often called \emph{SS} in statistics, and refers to the difference between the observed values (\eqn{y_i}{y_i}) and their mean (\eqn{y_{mean}}{y_mean}). 
+To compare the calibration of the model, described by the data set, with its prediction power, the model is applied to an external data set. 
+The comparison of the predicited values \eqn{y_i^{pred}}{y_i^pred} with the observed values \eqn{y_i}{y_i} leads to predictive squared correlation coefficient, \eqn{q^2}{q^2}:  
+\deqn{q^2 = 1-\frac{\sum\limits_{i=1}^N\left( y_i^{pred} - y_i\right)^2}{\sum\limits_{i=1}^N\left( y_i - y_{mean}\right)^2} \equiv 1 - \frac{PRESS}{SS}}{ q^2 = 1 - (SIGMA_i=1^N (y_i^pred - y_i)^2 / (SIGMA_i=1^N (y_i - y_mean)^2) \u2261 1 - PRESS/SS}
+The \strong{PRE}dictive residual \strong{S}um of \strong{S}quares (\emph{PRESS}) is the difference between the prediction (\eqn{y_i^{pred}}{y_i^pred}) and the observation value (\eqn{y_i}{y_i}).
+The \strong{S}um of \strong{S}quares \emph{RSS} refers to the difference between the observed values (\eqn{y_i}{y_i}) and their mean (\eqn{y_{mean}}{y_mean}).
+\cr
+To avoid any bias, \eqn{y_{mean}}{y_mean} should be the arithemtic mean of the \eqn{y_i}{y_i} from the external data set, not the arithemtic mean obtained from the initial data set's observed values.
+Hence the clarifying \eqn{q^2_{tr}}{q^2_tr} equation is slighlty different to the previous \eqn{q^2}{q^2} equation:
+\deqn{q^2_{tr} = 1-\frac{\sum\limits_{i=1}^N\left( y_i^{pred} - y_i\right)^2}{\sum\limits_{i=1}^N\left( y_i - y_{mean}^{training}\right)^2} }{ q_tr^2 = 1 - (SIGMA_i=1^N (y_i^pred - y_i)^2 / (SIGMA_i=1^N (y_i - y_mean^training)^2)}
+\eqn{y_{mean}^{training}}{y_mean^training} is the arithemtic mean of the observed values in the external data set, which is used to determine the prediction performance \eqn{q^2_{tr}}{q^2_tr} of the training set.\cr
+
+Furthermore, if no external data set is available, one can perform a cross validation on the training set to evaluate the prediction performance.
+The cross validation splits the data set (\eqn{N}{N} elements) into a training set (\eqn{N-k}{N-k} elements) and a test set (\eqn{k}{k} elements). 
+Each training set yields to a model, which is used to predict the missing \eqn{k}{k} value(s).
+Any observed value is predicted once.\cr %LATER: Could be predicted several times
+\deqn{q^2_{cv} = 1-\frac{\sum\limits_{i=1}^N\left( y_i^{pred(N-k)} - y_i\right)^2}{\sum\limits_{i=1}^N\left( y_i - y_{mean}^{N-k,i}\right)^2} }{ q_cv^2 = 1 - SIGMA_i=1^N (y_i^pred(N-k) - y_i)^2 / (SIGMA_i=1^N (y_i - y_mean^(N-k,i)^2}
+% comprised == beinhalten, ginge auch contain, involve, imply, available from
+The arithmetic mean \eqn{y_{mean}^{N-k,i}}{y_mean^N-k,i} used in this equation, is the arithemic mean of the observed values comprised in the training set.
+\cr
+Remark, in case of a cross validation, the calculation of the predictive squared correlation coefficient, \eqn{q^2}{q^2}, is more accurate than the calculation of the conventional squared correlation coefficient, \eqn{r^2}{r^2}.
+\cr
+
+\strong{
+Note: Currently, this package performs a calculation of \eqn{q^2_{cv}}{q^2_cv} with a Leave-One-Out (LOO) cross validation (\eqn{k=1}{k=1}) only.
+}
 }
 \author{
 Torsten Thalheim <torstenthalheim@gmx.de>
 }
 \references{
-Schuurmann G, Ebert R-U, Chen J, Wang B, Kuhne R. 2008. External validation and prediction employing the predictive squared correlation coefficient - test set activity mean vs training set activity mean. \emph{J. Chem. Inf. Model.} \bold{48:} 2140-2145 
+%%\inputenconding{utf8}
+%%\usepackage[utf8]{inputenc}
+\enumerate{
+\item Cramer RD III. 1980. BC(DEF) Parameters. 2. An Empirical Structure-Based Scheme for the Prediction of Some Physical Properties. \emph{J. Am. Chem. Soc.} \bold{102:} 1849-1859.
+\item Cramer RD III, Bunce JD, Patterson DE, Frank IE. 1988. Crossvalidation, Bootstrapping, and Partial Least Squares Compared with Multiple Linear Regression in Conventional QSAR Studies. \emph{Quant. Struct.-Act. Relat.} \bold{1988:} 18-25.
+\item Organisation for Economic Co-operation and Development. 2007. Guidance document on the validation of (quantitative) structure-activity relationship [(Q)SAR] models. \emph{OECD Series on Testing and Assessment 69.} OECD Document ENV/JM/MONO(2007)2, pp 55 (paragraph no. 198) and 65 (Table 5.7).
+\item \enc{Schüürmann}{Schuurmann} G, Ebert R-U, Chen J, Wang B, \enc{Kühne}{Kuhne} R. 2008. External validation and prediction employing the predictive squared correlation coefficient - test set activity mean vs training set activity mean. \emph{J. Chem. Inf. Model.} \bold{48:} 2140-2145.
+\item Tropsha A, Gramatica P, Gombar VK. 2003. The Importance of Being Earnest: Validation is the Absolute Essential for Successful Application and Interpretation of QSPR Models. \emph{QSAR Comb. Sci.} \bold{22:} 69-77.
+}
 }
 \keyword{
   q^2
@@ -34,6 +79,6 @@ Schuurmann G, Ebert R-U, Chen J, Wang B, Kuhne R. 2008. External validation and 
 \examples{
 library(cvq2)
 data(cvq2.setA)
-result <- cvq2( cvq2.setA, y~x_1+x_2)
+result <- cvq2( cvq2.setA, y ~ x1 + x2 )
 result
 }
