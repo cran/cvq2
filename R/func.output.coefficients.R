@@ -1,20 +1,24 @@
 func.output.coefficients <-
-function(coeff, output.round, writeOutputTarget){
-  if( is.null(writeOutputTarget) )
+function( output ){
+  if( is.null(output$writeTarget) )
     return()
 
-  func.output.linearFormula( coeff, writeOutputTarget)
+  func.output.linearFormula( output )
+
+  intercept <- 0
 
   # output coefficents, formatted
   # NROW gross, da Vektor
-  for(i in 1:NROW(coeff) ){
-    value <- round(coeff[i], output.round)
-
-    if(names(coeff)[1] == "(Intercept)"){
-      writeLines( paste(ifelse(i == 1, "const: ", letters[i-1]), ": ", value, sep=""), con = writeOutputTarget )
-    }else{
-      writeLines( paste(letters[i], ": ", value, sep=""), con = writeOutputTarget )
+  for(i in 1:NROW(output$coefficients) ){
+    param <- letters[i - intercept]
+    value <- round(output$coefficients[i], output$round)
+    
+    if(names(output$coefficients)[i] == "(Intercept)"){
+      param <- "const"
+      increment(intercept)
     }
+  
+    writeLines( paste( param,":", value), con = output$writeTarget )
   }
 }
 

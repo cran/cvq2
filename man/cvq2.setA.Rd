@@ -3,7 +3,7 @@
 \docType{data}
 %do not use \eqn in title
 \title{
-Small data set to demonstrate the difference between the conventional squared correlation coefficient and the predictive squared correlation coefficient (cross validation).
+Small data set to demonstrate the difference between the conventional squared correlation coefficient and the predictive squared correlation coefficient while performing a Leave-One-Out cross validation.
 }
 \description{
 Contains a small data set with four observations, the observed value \emph{y} depends on two parameters (\eqn{x_1}{x_1}, \eqn{x_2}{x_2}).

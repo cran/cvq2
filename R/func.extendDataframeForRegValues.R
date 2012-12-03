@@ -1,17 +1,21 @@
 func.extendDataframeForRegValues <-
-function(extFrame, coeff, cvPre){
-  if(names(coeff)[1] == "(Intercept)"){
-    for(i in 1:ncol(cvPre)){
-      extFrame[, i+3] <- 0
-      colnames(extFrame)[i+3] <- ifelse(i == 1, "const", letters[i-1] )
+function( extFrame, coeff ){
+  tmp <- NULL
+  tmp$noOfRows <- NCOL(extFrame)
+  tmp$intercept <- 0
+  
+  for(i in 1:NROW(coeff)){
+    param <- letters[i - tmp$intercept]
+    extFrame[FALSE, i+tmp$noOfRows] <- numeric(0)
+    
+    if(names(coeff)[i] == "(Intercept)"){
+      param <- "const"
+      increment(tmp$intercept)
     }
-  }else{
-    for(i in 1:(ncol(cvPre)-1)){
-      extFrame[, i+3] <- 0
-      colnames(extFrame)[i+3] <- letters[i]
-    }
+  
+    colnames(extFrame)[i+tmp$noOfRows] <- param
   }
-
-  extFrame
+  
+  return( extFrame )
 }
 

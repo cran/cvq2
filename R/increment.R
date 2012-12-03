@@ -1,5 +1,3 @@
 increment <-
-function(x){
-  eval.parent(substitute(x <- x + 1))
-}
+function(x){ eval.parent(substitute(x <- x + 1)) }
 

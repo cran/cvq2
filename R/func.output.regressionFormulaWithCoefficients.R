@@ -1,26 +1,26 @@
 func.output.regressionFormulaWithCoefficients <-
-function(coeff, output.round, parameter, writeOutputTarget){
-  if( is.null(writeOutputTarget) )
+function( output, parameter ){
+  if( is.null(output$writeTarget) )
     return()
 
-  writeLines( "Regression formula with fitted parameters: ", con = writeOutputTarget)
+  writeLines( "Regression formula with fitted parameters: ", con = output$writeTarget)
 
-  coeff.start = 1
+  start = 1
   param.i = 1
-  coeff.text <- NULL
-  
-  if(names(coeff)[1] == "(Intercept)")
-    increment(coeff.start)
+  text <- NULL
 
-  for(i in coeff.start:NROW(coeff) ){
-    coeff.text[NROW(coeff.text)+1] <- paste(round(coeff[[i]], output.round),"*",parameter[param.i])
+  if(names(output$coefficients)[1] == "(Intercept)")
+    increment(start)
+
+  for(i in start:NROW(output$coefficients) ){
+    text[NROW(text)+1] <- paste(round(output$coefficients[[i]], output$round),"*",parameter[param.i])
     increment(param.i)
   }
-  
-  if( coeff.start == 2 )
-    coeff.text[NROW(coeff.text)+1] <- round(coeff[[1]], output.round)
-  
-  #use collapse instead sep, to combine the coeff.text vector
-  cat(parameter[param.i],"=", paste(coeff.text,collapse=" + "), "\n", file = writeOutputTarget)
+
+  if( start == 2 )
+    text[NROW(text)+1] <- round(output$coefficients[[1]], output$round)
+
+  #use collapse instead sep, to combine the text vector
+  cat(parameter[param.i],"=", paste(text,collapse=" + "), "\n", file = output$writeTarget)
 }
 

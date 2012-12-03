@@ -1,35 +1,40 @@
 func.output.PerformanceValues <-
-function(result, output.round, writeOutputTarget){
-  if( is.null(writeOutputTarget) )
-    return()
+function(result, output){
+#TODO later: use format 
 
-  writeLines("\n---- RESULTS ----", con = writeOutputTarget)
-  writeLines("", con = writeOutputTarget)
+  varyTrainingSet = ""
+  varyTestSet = ""
 
-  writeLines( paste("-- FULL REGRESSION"), con = writeOutputTarget )
-  writeLines( paste("#Elements: \t\t",result$r2$elements[1],sep=""), con = writeOutputTarget )
-  writeLines("", con = writeOutputTarget)
+  writeLines("\n---- CALL ----", con = output$writeTarget)
+  writeLines(deparse(output$call), con = output$writeTarget)
 
-  writeLines( paste("rms: \t\t\t", round(result$r2$rms[1], output.round),sep=""), con = writeOutputTarget )
-  writeLines( paste("r^2 (use Y_mean): \t", round(result$r2$value[1], output.round),sep=""), con = writeOutputTarget )
-  writeLines( "", con = writeOutputTarget )
+  writeLines("\n---- RESULTS ----\n", con = output$writeTarget)
 
-  writeLines( paste("-- CROSS VALIDATION",sep=""), con = writeOutputTarget )
-  #number of different test sets is missing
-  writeLines( paste("Split Size Data Set: \t\t",result$cv$split_size_data_set[1],sep=""), con = writeOutputTarget )
-  writeLines( paste("#Splitted Sets: \t\t",result$cv$splitted_sets_count[1],sep=""), con = writeOutputTarget )
-  writeLines("", con = writeOutputTarget)
+  writeLines( "-- LINEAR REGRESSION", con = output$writeTarget )
+  cat( "#Elements: \t\t",result$fit$n,"\n\n",sep="", file = output$writeTarget )
   
-  writeLines( paste("#Elements Training Set: \t",result$cv$elements_training_set[1],sep=""), con = writeOutputTarget )
-  writeLines( paste("#Elements Test Set: \t\t",result$cv$elements_test_set[1],sep=""), con = writeOutputTarget )
-  rep.run <- result$cv$repeated_runs[1]
-  if( rep.run > 0)
-    writeLines( paste("different runs: \t\t\t", rep.run, sep="" ), con = writeOutputTarget )
-  writeLines("", con = writeOutputTarget)
+  #to avoid 9 -> 1 digit, 10 -> 2 digits -> log10 == 1
+  nDigits <- floor(log10(max(result$fit$rmse, result$fit$r2))) + 1
 
-  writeLines( paste("rms: \t\t\t\t", round(result$cv$q2$rms[1], output.round),sep=""), con = writeOutputTarget )
-#  writeLines( paste("q^2 (use Y_mean): \t\t\t\t\t", round(result$q2$value[1], output.round),sep=""), con = writeOutputTarget )
-  writeLines( paste("q^2_cv (use Y_mean^training): \t", round(result$cv$q2$value[1], output.round),sep=""), con = writeOutputTarget )
-  writeLines("\n---- End RESULTS ----", con = writeOutputTarget)
+  format(c(6.0, 13.5), digits = 2, nsmall = 0)
+
+  cat("rmse: \t\t\t", format(result$fit$rmse, digits = 2, nsmall = output$round), "\n", sep="", file = output$writeTarget )
+  cat("r^2 (use Y_mean): \t", format(result$fit$r2, digits = 2, nsmall = output$round), "\n", sep="", file = output$writeTarget )
+
+  writeLines( "-- CROSS VALIDATION", con = output$writeTarget )
+
+  cat("#Runs: \t\t\t\t", result$cv$nRun, "\n", sep="", file = output$writeTarget )
+  cat("#Groups: \t\t\t",result$cv$nGroup, "\n", sep="", file = output$writeTarget )
+
+  if( result$cv$variableSplit ){
+    varyTrainingSet = " (+1)"
+    varyTestSet = " (-1)"
+  }
+
+  cat("#Elements Training Set: \t",result$cv$nTrainingSet,varyTrainingSet, "\n",sep="", file = output$writeTarget )
+  cat("#Elements Test Set: \t\t",result$cv$nTestSet,varyTestSet, "\n\n",sep="", file = output$writeTarget )
+
+  cat("rmse: \t\t\t\t", round(result$cv$rmse, output$round), "\n",sep="", file = output$writeTarget )
+  cat("q^2_cv (use Y_mean^training): \t", round(result$cv$q2, output$round), "\n",sep="", file = output$writeTarget )
 }
 

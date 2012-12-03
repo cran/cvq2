@@ -11,6 +11,6 @@ function( col.name ){
 
     col.formula = paste( col.formula, tmp.sign, col.name[i] )
   }
-  as.formula(col.formula)
+  return( as.formula(col.formula) )
 }
 
