@@ -24,16 +24,16 @@ round = 4, extOut = FALSE, extOutFile = NULL  ){
   
 #    input$splitSizeDataSet = floor( nrow(data) / input$nGroup )
   input$nTestSet = ceiling( nrow(data) / input$nGroup )
-  input$nTrainingSetSet = nrow(data) - input$nTestSet
+  input$nTrainingSet = nrow(data) - input$nTestSet
   # everytime the same size for training and test set
-  input$variableSplit = FALSE 
+  input$decimalSplit = FALSE 
   
   nTrainingSetMin = input$nTrainingSet
   
   # no equal distribution size for test and training set possible
   # distribution can vary (test set + 1), (training set - 1)
   if( input$nTestSet != NROW(data) / input$nGroup ){
-    input$variableSplit = TRUE
+    input$decimalSplit = TRUE
     decrement(nTrainingSetMin)
   }
     
@@ -42,6 +42,14 @@ round = 4, extOut = FALSE, extOutFile = NULL  ){
   if( input$nGroup > nrow(data) ){
     cat("It is not possible, to have more groups (",input$nGroup,") than elements in the data set exist (",nrow(data),").\n")
     stop("Change parameter settings and start againg")
+  }
+  
+  # maximum N groups == Leave one out cross validation
+  # in every iteration (run) one get the same distribution of training and test set
+  # therefore it is not necessary to perform more than one run
+  if( input$nGroup == N && input$nRun > 1 ){
+    cat("Training and test set distribution will be equal for every individual run. Therefore it is not necessary to perform more than one run, nRun is set to 1\n")
+    input$nRun <- 1
   }
 
   # number of x + 1 is minimum for training set
@@ -90,14 +98,14 @@ round = 4, extOut = FALSE, extOutFile = NULL  ){
   # leave-X-out, cross validation
   result$cv <- func.crossValidationAnalysis( input, output )
   
-  # data output
-  if( !is.null(output$writeTarget) )
-    func.output.PerformanceValues( result, output )
-
-  if( output$toFile )
+  if( output$toFile ){
+    func.output.performanceValues( result, output )
     close(output$writeTarget)
+  }
   
-#  print(result)
-  return( result )
+  # return as class and write it to stdout
+  output$writeTarget = stdout()
+  
+  return( new("cvq2", result=result, output=output) )
 }
 

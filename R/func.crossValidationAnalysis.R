@@ -78,9 +78,13 @@ function( input, output ){
       samp$orderThisRun <- samp$orderThisRun[-c(1:NROW(samp$rows))]
   
       if( !is.null(output$writeTarget) ){
-        cat("Sample",samp$no,":",sort(samp$rows),"\n")
+#print(output$writeTarget)
+        cat("Sample",samp$no,":",sort(samp$rows),"\n", file = output$writeTarget)
         cat("Leave-X-Out Mean",mean(samp$trainingSet[,ncol(input$dataCV)]),"\n", file = output$writeTarget)
-        print(samp$model, file = output$writeTarget)
+# print does not work with con or file, glm-class output can not redirected to cat, paste or sth. else
+#x<-print.glm(samp$model, file = output$writeTarget)
+        func.output.regressionFormulaWithCoefficients(output, colnames(input$dataCV))
+
         writeLines("", con = output$writeTarget)
       }
       increment(samp$no)
@@ -124,7 +128,7 @@ function( input, output ){
       "nTestSet" = input$nTestSet,
       "nTrainingSet" = input$nTrainingSet,
       "nGroup" = input$nGroup,
-      "variableSplit" = input$variableSplit,
+      "decimalSplit" = input$decimalSplit,
       "q2" = func.calcXSquare(datatable[,tmp$cv$pred_col], datatable[,tmp$cv$obs_col], datatable[,tmp$cv$meanY_col]),
       # berechnet man den kompletten Datensatz mit einem Model -> N
       # berechnet man nur eine Stichprobe des Datensatzes mit einem Model -> n-1, cross validation ist Stichprobe, da nur x-Elemente vorhergesagt werden

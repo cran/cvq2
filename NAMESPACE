@@ -1,1 +1,2 @@
 exportPattern( "cvq2.*" )
+exportClassPattern( "cvq2" )
