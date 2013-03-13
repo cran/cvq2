@@ -1,8 +1,8 @@
 Package: cvq2
 Type: Package
 Title: Calculate the predictive squared correlation coefficient
-Version: 1.0.3
-Date: 2013-01-17
+Version: 1.1.0
+Date: 2013-03-13
 Author: Torsten Thalheim
 Maintainer: Torsten Thalheim <torstenthalheim@gmx.de>
 Description: The external prediction capability of quantitative
@@ -13,6 +13,7 @@ Description: The external prediction capability of quantitative
 Depends: stats, methods
 License: GPL-3
 LazyLoad: yes
-Packaged: 2013-01-22 06:55:59 UTC; TT
+Packaged: 2013-03-12 16:35:07 UTC; TT
+NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2013-01-22 08:30:45
+Date/Publication: 2013-03-13 07:44:44

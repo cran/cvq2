@@ -7,60 +7,49 @@
 \title{Class \code{"cvq2"}}
 \description{
 %%  ~~ A concise (1-5 lines) description of what the class is. ~~
-  The class \code{"cvq2"} is used to store information about the model calibration and its prediction performance.  
+  The class \code{"cvq2"} extends class \code{"\linkS4class{q2}"} and is used to store information about the model calibration and its prediction performance.
+  The prediction performance is calculated with a cross-validation.
 }
 \section{Objects from the Class}{
-Objects can be created by calls of the form \code{new("cvq2", ...)}.
+  Objects can be created by calls of the form \code{new("cvq2", ...)}.
 %%  ~~ describe objects here ~~ 
 }
 \section{Slots}{
   \describe{
     %hier jetzt die individuellen items
     \item{\code{result}}{
-%%    cross validation results, mainly \eqn{q^2}{q^2}, \eqn{r^2}{r^2} and \eqn{rmse}{rmse}, districution of training and test set, \eqn{y_{mean}}{y_mean}
-      Contains two lists (\code{fit}, \code{cv}) regarding the results from linear regression (model calibration, \code{fit}) and cross validation (prediction power, \code{cv}), see below.
+%%    cross-validation results, mainly \eqn{q^2}{q^2}, \eqn{r^2}{r^2} and \eqn{rmse}{rmse}, districution of training and test set, \eqn{y_{mean}}{y_mean}
+      Contains three lists (\code{fit}, \code{pred}, \code{cv}) regarding the results from linear regression (model calibration, \code{fit}) and cross-validation (prediction power, \code{pred} and \code{cv}) for the given model.
     %names(result$fit)
     }
     \item{\code{output}}{A list of parameters like number formats, output restrictions or output targets.}
   }
 %%  \cr
   
-  \subsection{Linear regression results list}{
-    % calibration performance
+  \subsection{Linear regression and prediction result list}{
+
+    These lists are inherted from the parent class \code{\linkS4class{q2}}.
+    Differences caused by cross-validation appear in the prediction result list for:
     \describe{
-    %  
-      \item{\code{datatable}}{The observed and predicted values.}
-      \item{\code{datatable_columns}}{The explanation of the datatable's column names.}
-    %
-      \item{\code{model}}{The linear regression model.}
-      \item{\code{n}}{The number of elements in the data set.}
-      \item{\code{observed_mean}}{The arithmetic mean of the observed values.}
-    % result  
-      \item{\code{r2}}{The conventional squared correlation coefficient.}
-      \item{\code{rmse}}{The linear regression root mean square error.}
-    %% ...
-    }
-  }
-  \subsection{Cross validation results list}{
-  %prediction power
-      \describe{
-    %
-      \item{\code{datatable}}{For each observed value, it contains the model parameters, the value is predicted with. Furthermore, the arithmetic mean of the training set and the predicted value are stored in this table.}
-      \item{\code{datatable_columns}}{The explanation of the datatable's column names.}
-    %run parameter
-      \item{\code{decimalSplit}}{\emph{True}, if some groups (test sets) consist of \eqn{k-1}{k-1} elements.}
-      \item{\code{nGroup}}{The number of individual sets generated from the data.}
-      \item{\code{nRun}}{The number of runs each value is predicted.}
-      \item{\code{nTestSet}}{The number of elements in one test set (\eqn{k}{k}).}
-      \item{\code{nTrainingSet}}{The number of elements in one training set (\eqn{N-k}{N-k}).}
-    %result
-      \item{\code{q2}}{The predictive squared correlation coefficient.}
-      \item{\code{rmse}}{The root mean square error. This will be calculated with Bessel's sample covariance correction, using \eqn{N-1}{N-1} in the denominator instead \eqn{N}{N} 
-    %  According to Bessel's sample covariance correction, the root mean square error will be calculated using \eqn{N-1}}{N-1} in the denominator instead \eqn{N}}{N}. 
+      \item{\code{datatable}}{Additionaly, for each observed value the model parameters used for prediction are stored, as well as the arithmetic mean of the training set
       }
-      \item{\code{TestSet}}{The composition of the individual test sets.}
+      \item{\code{nTrainingSet}}{The number of elements in \emph{one} training set (\eqn{N-k}{N-k}) plus an eventually variation.}
+      \item{\code{nTestSet}}{The number of elements in \emph{one} test set (\eqn{k}{k}) minus an eventually variation.}
+    }
+
+  }
+  \subsection{Cross-validation result list}{
+   %cross-validation
+    \describe{
+     %run parameter
+      \item{\code{decimalSplit}}{\emph{True}, if some test sets consist of \eqn{k-1}{k-1} elements.}
+      \item{\code{nFold}}{The model data set (\code{modelData}) is randomly partitioned into \var{n} equal sized (according to \code{decimalSplit}) test sets for each individual run.}  %The data set is split into this number of individual test sets
+      \item{\code{nRun}}{The number of runs each value is predicted.}
     }
   }
+}
+\section{Extends}{
+  Class \code{"\linkS4class{q2}"}, directly.
 }
 \section{Methods}{
   \describe{
@@ -77,11 +66,12 @@ Objects can be created by calls of the form \code{new("cvq2", ...)}.
 %%\section{ANY}{}
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
+%%\seealso{
 %%  ~~objects to See Also as \code{\link{~~fun~~}}, ~~~
 %%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
-  \code{\link{cvq2}}
-}
+%%  \code{\link{q2}}
+%%  \code{\linkS4class{q2}}
+%%}
 \examples{
   showClass("cvq2")
 }

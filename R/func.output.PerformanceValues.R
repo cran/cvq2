@@ -13,30 +13,48 @@ function(result, output){
   writeLines( "-- MODEL CALIBRATION (linear regression)", con = output$writeTarget )
   cat( "#Elements: \t",result$fit$n,"\n\n",sep="", file = output$writeTarget )
   
-  #to avoid 9 -> 1 digit, 10 -> 2 digits -> log10 == 1
-  nDigits <- floor(log10(max(result$fit$rmse, result$fit$r2))) + 1
-
-  format(c(6.0, 13.5), digits = 2, nsmall = 0)
-
-  cat("rmse: \t\t", format(result$fit$rmse, digits = 2, nsmall = output$round), "\n", sep="", file = output$writeTarget )
-  # (use Y_mean)
-  cat("r^2: \t\t", format(result$fit$r2, digits = 2, nsmall = output$round), "\n", sep="", file = output$writeTarget )
-
-  writeLines( "\n-- PREDICTION PERFORMANCE (cross validation)", con = output$writeTarget )
-
-  cat("#Runs: \t\t\t\t", result$cv$nRun, "\n", sep="", file = output$writeTarget )
-  cat("#Groups: \t\t\t",result$cv$nGroup, "\n", sep="", file = output$writeTarget )
-
-  if( result$cv$decimalSplit ){
-    varyTrainingSet = " (+1)"
-    varyTestSet = " (-1)"
+  nFormat <- format(round(c(result$fit$observed_mean, result$fit$predicted_mean, result$fit$rmse, result$fit$r2), digits = output$round), nsmall = output$round)
+  
+  cat("mean (observed): \t", nFormat[1], "\n", sep="", file = output$writeTarget )
+  cat("mean (predicted): \t", nFormat[2], "\n", sep="", file = output$writeTarget )
+  cat("rmse: \t\t\t", nFormat[3], "\n", sep="", file = output$writeTarget )
+  cat("r^2: \t\t\t", nFormat[4], "\n", sep="", file = output$writeTarget )
+  
+  out.perf = "model and prediction set available"
+  if( !is.null(result$cv) )
+    out.perf = "cross validation"
+  cat( "\n-- PREDICTION PERFORMANCE (", out.perf, ")\n", sep="", file = output$writeTarget )
+  
+  if( !is.null(result$cv) ){
+    #cross validation specific values
+    cat("#Runs: \t\t\t\t", result$cv$nRun, "\n", sep="", file = output$writeTarget )
+    cat("#Groups: \t\t\t",result$cv$nFold, "\n", sep="", file = output$writeTarget )
+    
+#    y_means der gruppen
+  
+    if( result$cv$decimalSplit ){
+      varyTrainingSet = " (+1)"
+      varyTestSet = " (-1)"
+    }
+  }
+  
+  out.train = "#Elements Model Set: \t\t"
+  out.test = "#Elements Prediction Set: \t" 
+  
+  if( !is.null(result$cv) ){
+    out.train = "#Elements Training Set: \t"
+    out.test = "#Elements Test Set: \t\t"
   }
 
-  cat("#Elements Training Set: \t",result$cv$nTrainingSet,varyTrainingSet, "\n",sep="", file = output$writeTarget )
-  cat("#Elements Test Set: \t\t",result$cv$nTestSet,varyTestSet, "\n\n",sep="", file = output$writeTarget )
+  cat( out.train, result$pred$nTrainingSet,varyTrainingSet, "\n",sep="", file = output$writeTarget )
+  cat( out.test, result$pred$nTestSet,varyTestSet, "\n\n",sep="", file = output$writeTarget )
 
-  cat("rmse: \t\t\t\t", round(result$cv$rmse, output$round), "\n",sep="", file = output$writeTarget )
+  nFormat <- format(round(c(result$pred$observed_mean, result$pred$predicted_mean, result$pred$rmse, result$pred$q2), digits = output$round), nsmall = output$round)
+
+  cat("mean (observed): \t", nFormat[1], "\n", sep="", file = output$writeTarget )
+  cat("mean (predicted): \t", nFormat[2], "\n", sep="", file = output$writeTarget )
+  cat("rmse: \t\t\t", nFormat[3], "\n",sep="", file = output$writeTarget )
   # calculated with Y_mean^training
-  cat("q^2_cv : \t\t\t", round(result$cv$q2, output$round), "\n",sep="", file = output$writeTarget )
+  cat("q^2: \t\t\t", nFormat[4], "\n",sep="", file = output$writeTarget )
 }
 

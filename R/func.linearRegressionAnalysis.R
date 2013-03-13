@@ -3,15 +3,15 @@ function( input, output ){
   tmp <- NULL
 
   #data.meanY
-  observed_mean = mean(input$dataCV[,ncol(input$dataCV)])
+  observed_mean = mean(input$modelData[,ncol(input$modelData)])
 
-  model <- glm( formula = input$regressionFormula, data = input$dataCV )
+  model <- glm( formula = input$regressionFormula, data = input$modelData )
   #replace the coefficients outside this function too
   eval.parent(substitute(output$coefficients <- model$coefficients))
 
   if( !is.null(output$writeTarget) ){
     writeLines("\n---- Start linear regression ----", con = output$writeTarget)
-    func.output.regressionFormulaWithCoefficients( output, colnames(input$dataCV) ) 
+    func.output.regressionFormulaWithCoefficients( output, colnames(input$modelData) ) 
     writeLines( "", con = output$writeTarget )
   }
   
@@ -23,13 +23,12 @@ function( input, output ){
     dimnames = list(NULL, c("abrev", "trans"))
   )
   
-  datatable <- cbind( input$dataCV[,NCOL(input$dataCV)], 1:nrow(input$dataCV) )
+  datatable <- cbind( input$modelData[,NCOL(input$modelData)], 1:nrow(input$modelData) )
   colnames(datatable) <- datatable_columns[,"abrev"]
 
   tmp$pred_col <- datatable_columns[datatable_columns[,"trans"]=="predicted value", "abrev"]
   
-  for(i in 1:nrow(input$dataCV) )
-    datatable[i, tmp$pred_col] <- func.predValue( model, input$dataCV, i )
+  datatable[, tmp$pred_col] <- predict( model, input$modelData )
 
   if( !is.null(output$writeTarget) ){
     writeLines("Observed vs. predicted values: ", con = output$writeTarget)
@@ -46,12 +45,13 @@ function( input, output ){
   
   return( 
     list(
-      "r2" = func.calcXSquare( datatable[, tmp$pred_col], input$dataCV[,ncol(input$dataCV)], observed_mean ),
-      "rmse" = func.calcRMSE( datatable[, tmp$pred_col], input$dataCV[,ncol(input$dataCV)] ),
-      "n" = nrow(input$dataCV),
+      "r2" = func.calcXSquare( datatable[, tmp$pred_col], input$modelData[,ncol(input$modelData)], observed_mean ),
+      "rmse" = func.calcRMSE( datatable[, tmp$pred_col], input$modelData[,ncol(input$modelData)] ),
+      "n" = nrow(input$modelData),
       "datatable_columns" = datatable_columns,
       "datatable" = datatable,
       "observed_mean" = observed_mean,
+      "predicted_mean" = mean(datatable[, tmp$pred_col]),
       "model" = model
     )      
   )

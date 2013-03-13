@@ -3,8 +3,9 @@ function( input, output ){
   tmp <- NULL
   samp <- NULL
   
-  datatable <- data.frame(
+  cv.datatable <- data.frame(
     cbind(
+      "no" = numeric(0),
       "meanY.LXO" = numeric(0), 
       "obs" = numeric(0), 
       "pred" = numeric(0)
@@ -12,33 +13,33 @@ function( input, output ){
   )
 
   # extend the dataframe for the regression values
-  datatable <- func.extendDataframeForRegValues( datatable, output$coefficients )
-
-  datatable_columns <- matrix(
-    c(paste( "C", 1:NCOL(datatable), sep =""), letters[1:NCOL(datatable)]),
-    nrow = NCOL(datatable),
+  cv.datatable <- func.extendDataframeForRegValues( cv.datatable, output$coefficients )
+  cv.datatable_columns <- matrix(
+    c(paste( "C", 1:NCOL(cv.datatable), sep =""), letters[1:NCOL(cv.datatable)]),
+    nrow = NCOL(cv.datatable),
     ncol = 2,
     byrow = FALSE,
     dimnames = list(NULL, c("abrev", "trans"))
   )
-  colnames(datatable) <- datatable_columns[,"abrev"]
+  colnames(cv.datatable) <- cv.datatable_columns[,"abrev"]
 
-  tmp$colnames <- c("Y_mean^training", "observed value", "predicted value")
+  tmp$colnames <- c( "no in modelData", "Y_mean^training", "observed value", "predicted value" )
 
-  datatable_columns[1:NROW(tmp$colnames),"trans"] <- tmp$colnames
+  cv.datatable_columns[1:NROW(tmp$colnames),"trans"] <- tmp$colnames
   tmp$colnames.i <- NROW(tmp$colnames) + 1
 
   if(names(output$coefficients)[1] == "(Intercept)"){
-    datatable_columns[tmp$colnames.i,"trans"] <- "const"
+    cv.datatable_columns[tmp$colnames.i,"trans"] <- "const"
     increment(tmp$colnames.i)
   }
   
-  for( i in tmp$colnames.i:NCOL(datatable) )
-    datatable_columns[i,"trans"] <- letters[i - tmp$colnames.i + 1]
+  for( i in tmp$colnames.i:NCOL(cv.datatable) )
+    cv.datatable_columns[i,"trans"] <- letters[i - tmp$colnames.i + 1]
 
-  tmp$cv$pred_col <- datatable_columns[datatable_columns[,"trans"]=="predicted value", "abrev"]
-  tmp$cv$obs_col <- datatable_columns[datatable_columns[,"trans"]=="observed value", "abrev"]
-  tmp$cv$meanY_col <- datatable_columns[datatable_columns[,"trans"]=="Y_mean^training", "abrev"]
+  tmp$cv$no_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="no in modelData", "abrev"]
+  tmp$cv$pred_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="predicted value", "abrev"]
+  tmp$cv$obs_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="observed value", "abrev"]
+  tmp$cv$meanY_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="Y_mean^training", "abrev"]
 
   #perform cross validation
   samp$no = 1 
@@ -54,53 +55,68 @@ function( input, output ){
       else
         samp$rows <- samp$orderThisRun[c(1:(input$nTestSet - 1))]
     
-      samp$trainingSet <- input$dataCV[-samp$rows,] #regressionSet
-      samp$testSet <- input$dataCV[samp$rows[order(samp$rows)],]  #predictionSet, ordered
+      samp$trainingSet <- input$modelData[-samp$rows,] #regressionSet
+      samp$testSet <- input$modelData[samp$rows[order(samp$rows)],]  #predictionSet, ordered
 
-      tmp$testSet[samp$no] <- list( samp$testSet)
+      tmp$testSet[samp$no] <- list( samp$testSet )
   
-      samp$model <- glm(input$regressionFormula, data=samp$trainingSet)
+      samp$model <- glm( formula = input$regressionFormula, data=samp$trainingSet )
+      
+      if(input$nRun == 1)
+        tmp$rowNo <- rownames(samp$testSet)
+      else
+        tmp$rowNo <- 1:nrow(samp$testSet)+NROW(cv.datatable)
 
-      for(i in 1:nrow(samp$testSet) ) {
-        if(input$nRun == 1)
-          tmp$rowNo <- rownames(samp$testSet)[i]
-        else
-          tmp$rowNo <- NROW(datatable)+1
-        
-        #last column is everytime the value to predict -> sort done earlier ensures this
-        datatable[tmp$rowNo, tmp$cv$meanY_col] <- mean(samp$trainingSet[, ncol(input$dataCV)])
-        datatable[tmp$rowNo, tmp$cv$pred_col] <- func.predValue(samp$model, samp$testSet, i)
-        datatable[tmp$rowNo, tmp$cv$obs_col] <- samp$testSet[i, ncol(input$dataCV)]
-        
-        for(c in 1:NROW(output$coefficients) )
-          datatable[tmp$rowNo, ncol(datatable)-NROW(output$coefficients)+c] = samp$model$coefficients[c]
-      }
+      cv.datatable[tmp$rowNo, tmp$cv$pred_col] <- predict(samp$model, samp$testSet)
+      cv.datatable[tmp$rowNo, tmp$cv$obs_col] <- samp$testSet[, ncol(input$modelData)]
+      cv.datatable[tmp$rowNo, tmp$cv$meanY_col] <- rep( mean(samp$trainingSet[, ncol(input$modelData)]), NROW(tmp$rowNo))
+      cv.datatable[tmp$rowNo, tmp$cv$no_col] <- as.numeric(rownames(samp$testSet))
+     
+      for(c in 1:NROW(output$coefficients) )
+        cv.datatable[tmp$rowNo, ncol(cv.datatable)-NROW(output$coefficients)+c] <- rep( samp$model$coefficients[c], NROW(tmp$rowNo))
+                                                                                               
       samp$orderThisRun <- samp$orderThisRun[-c(1:NROW(samp$rows))]
   
       if( !is.null(output$writeTarget) ){
-#print(output$writeTarget)
         cat("Sample",samp$no,":",sort(samp$rows),"\n", file = output$writeTarget)
-        cat("Leave-X-Out Mean",mean(samp$trainingSet[,ncol(input$dataCV)]),"\n", file = output$writeTarget)
-# print does not work with con or file, glm-class output can not redirected to cat, paste or sth. else
-#x<-print.glm(samp$model, file = output$writeTarget)
-        func.output.regressionFormulaWithCoefficients(output, colnames(input$dataCV))
+        cat("Leave-X-Out Mean",mean(samp$trainingSet[,ncol(input$modelData)]),"\n", file = output$writeTarget)
+        func.output.regressionFormulaWithCoefficients(output, colnames(input$modelData))
 
         writeLines("", con = output$writeTarget)
       }
       increment(samp$no)
     }
-#    tmp$rmse[iRun] <- func.calcRMSE(datatable[,tmp$cv$pred_col], datatable[,tmp$cv$obs_col], TRUE)
+#    tmp$rmse[iRun] <- func.calcRMSE(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], TRUE)
 
     increment(iRun)
   }
-  
-  # sort the datatable in case of sample fractioning
-  datatable <- datatable[order(as.numeric(rownames(datatable))),]
-#  print(datatable)
+
+  #copy it unsorted  
+  pred.datatable <- cv.datatable
+#  print(order(pred.datatable[tmp$cv$no_col,]))
+  pred.datatable <- pred.datatable[order(pred.datatable[,tmp$cv$no_col]),]
+  pred.datatable <- pred.datatable[ ,c(tmp$cv$no_col, tmp$cv$obs_col, tmp$cv$pred_col) ]
+
+  # sort the cv.datatable in case of sample fractioning
+#  pred.datatable <- pred.datatable[order(pred.datatable[tmp$cv$no_col,]),]
+#  print(cv.datatable)
+#  print(pred.datatable)
+
+  tmp$pred$colnames <- c( "no in modelData", "observed value", "predicted value" )
+
+  pred.datatable_columns <- matrix(                                                                                  
+    c(paste( "C", 1:NCOL(pred.datatable), sep =""), letters[1:NCOL(pred.datatable)]),
+    nrow = NCOL(pred.datatable),
+    ncol = 2,
+    byrow = FALSE,
+    dimnames = list(NULL, c("abrev", "trans"))
+  )
+
+  colnames(pred.datatable) <- pred.datatable_columns[,"abrev"]
+  pred.datatable_columns[1:NROW(tmp$pred$colnames),"trans"] <- tmp$pred$colnames
 
   if( !is.null(output$writeTarget) ){
-    writeLines("---- Start Leave-X-Out cross validation ----", con = output$writeTarget)
-    writeLines("-- OVERVIEW Parameter Cross Validation --", con = output$writeTarget)
+    writeLines("-- Start OVERVIEW Parameter Cross Validation --", con = output$writeTarget)
     writeLines("", con = output$writeTarget)
     #use coefficients from glm, should be same for cross valdiation
     func.output.linearFormula( output )
@@ -110,36 +126,51 @@ function( input, output ){
 
   if( !is.null(output$writeTarget) ){
     writeLines("Data Table: ", con = output$writeTarget)
-    cat( datatable_columns[,"abrev"], "\n", sep="\t", file = output$writeTarget )
+    cat( cv.datatable_columns[,"abrev"], "\n", sep="\t", file = output$writeTarget )
   
-    write.table( round(datatable,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
+    write.table( round(cv.datatable,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
     writeLines("", con = output$writeTarget)
   
     writeLines("Data Table column names explanation:", con = output$writeTarget)
-    write.table( datatable_columns, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
+    write.table( cv.datatable_columns, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
   
-    writeLines("---- End Leave-X-Out cross validation ----", con = output$writeTarget)
+    writeLines("-- End OVERVIEW Parameter Cross Validation --", con = output$writeTarget)
     writeLines("", con = output$writeTarget)
   }
+  
+  #hier koennten theoretisch noch die einzelnen samples und ihre ergebnisse rein
+  tmp$res$cv = list(
+    #redundant to res$pred
+    "nTestSet" = input$nTestSet,
+    "nTrainingSet" = input$nTrainingSet,
+    #
+    "nFold" = input$nFold,
+    "decimalSplit" = input$decimalSplit,
+    #rewrite this value(s)
+    "nRun" = input$nRun,
     
-  #number of different test sets is missing
-  return(
-    list(
-      "nTestSet" = input$nTestSet,
-      "nTrainingSet" = input$nTrainingSet,
-      "nGroup" = input$nGroup,
-      "decimalSplit" = input$decimalSplit,
-      "q2" = func.calcXSquare(datatable[,tmp$cv$pred_col], datatable[,tmp$cv$obs_col], datatable[,tmp$cv$meanY_col]),
-      # berechnet man den kompletten Datensatz mit einem Model -> N
-      # berechnet man nur eine Stichprobe des Datensatzes mit einem Model -> n-1, cross validation ist Stichprobe, da nur x-Elemente vorhergesagt werden
-      "rmse" = func.calcRMSE(datatable[,tmp$cv$pred_col], datatable[,tmp$cv$obs_col], TRUE),
-#      "rmse" = mean(tmp$rmse),
-      #rewrite this value(s)
-      "datatable" = datatable,
-      "datatable_columns" = datatable_columns,
-      "nRun" = input$nRun,
-      "TestSet" = tmp$testSet
-    )
+    "datatable" = cv.datatable,
+    "datatable_columns" = cv.datatable_columns,
+    "TestSet" = tmp$testSet
   )
+    
+  tmp$res$pred = list(
+    "nTestSet" = input$nTestSet,
+    "nTrainingSet" = input$nTrainingSet,
+    #at least the mean column must be from cv.datatable
+    "q2" = func.calcXSquare(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], cv.datatable[,tmp$cv$meanY_col] ),
+    # berechnet man den kompletten Datensatz mit einem Model -> N
+    # berechnet man nur eine Stichprobe des Datensatzes mit einem Model -> n-1, cross validation ist Stichprobe, da nur x-Elemente vorhergesagt werden
+    #one can use here pred.datatable as well
+    # but because the headers tmp$cv$pred_col ... are defined for cv.datatable
+    "rmse" = func.calcRMSE(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], TRUE),
+    "observed_mean" = mean(cv.datatable[, tmp$cv$obs_col]),
+    "predicted_mean" = mean(cv.datatable[, tmp$cv$pred_col]),
+    "datatable" = pred.datatable,
+    "datatable_columns" = pred.datatable_columns
+  )
+
+  #number of different test sets is missing
+  return( tmp$res )
 }
 

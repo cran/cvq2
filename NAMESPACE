@@ -1,2 +1,5 @@
 exportPattern( "cvq2.*" )
-exportClassPattern( "cvq2" )
+exportPattern( "looq2.*" )
+exportPattern( "^q2.*" )
+exportPattern( ".*qsq.*" )
+exportClassPattern( "*q2" )

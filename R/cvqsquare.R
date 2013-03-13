@@ -1,4 +1,4 @@
-cvq2 <-
+cvqsquare <-
 function( modelData, formula = NULL, nFold = N, nRun = 1,
 round = 4, extOut = FALSE, extOutFile = NULL  ){
 #  call <- match.call()
