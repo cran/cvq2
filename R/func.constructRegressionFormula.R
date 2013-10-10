@@ -1,13 +1,12 @@
 func.constructRegressionFormula <-
 function( col.name ){
-  col.formula = ""
+  #y column
+  col.formula = paste( col.name[NROW(col.name)], "~" )
 
-  for( i in NROW(col.name):1 ){
+  for( i in 1:(NROW(col.name)-1) ){
     tmp.sign = "+"
-    if( i == NROW(col.name) )
+    if( i == 1 )
       tmp.sign = ""
-    if( i == NROW(col.name)-1 )
-      tmp.sign = "~"
 
     col.formula = paste( col.formula, tmp.sign, col.name[i] )
   }

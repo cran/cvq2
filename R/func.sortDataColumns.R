@@ -10,7 +10,6 @@ function( input, sortData, writeOutputTarget){
       colnames(new.data)[i-1] <- all.vars(input$regressionFormula)[i]
     }
   }
-#  colnames(new.data) <- all.vars(input$regressionFormula)
 
   # y as last column
   new.data <- cbind(new.data, sortData[,all.vars(input$regressionFormula)[1]])

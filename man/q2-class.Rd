@@ -6,12 +6,12 @@
 
 \title{Class \code{"q2"}}
 \description{
-%%  ~~ A concise (1-5 lines) description of what the class is. ~~
-  The class \code{"q2"} is used to store information about the model calibration and its prediction performance demonstrated by an external data set.  
+  The class \code{"q2"} is used to store information about the calibration of model \var{M} and its prediction performance.
+  To determine the prediction power, \var{M} is applied to an external, independent data set.
+%  To demonstrate the prediction power \var{M} is applied to an external, independent data set.  
 }
 \section{Objects from the Class}{
-  Objects can be created by calls of the form \code{new("q2", ...)}.
-%%  ~~ describe objects here ~~ 
+  Objects can be created by calls of the form \code{new("q2", \ldots)}.
 }
 \section{Slots}{
   \describe{
@@ -25,35 +25,46 @@
   }
 %%  \cr
   
-  \subsection{Linear regression result list}{
+  \subsection{Model calibration}{
+    This part contains the measurements regarding the model calibration of the linear model \var{M}.
     % calibration performance
     \describe{
     %  
-      \item{\code{datatable}}{The observed and predicted values}
-      \item{\code{datatable_columns}}{The explanation of the datatable's column names}
+      \item{\code{data}}{The observations and the linear fitted predictions by model \var{M}}
+      \item{\code{data.col}}{The explanation of data's column names}
     %
-      \item{\code{model}}{The linear regression model}
+      \item{\code{model}}{The linear model \var{M}}
       \item{\code{n}}{The number of elements in the data set}
-      \item{\code{observed_mean}}{The arithmetic mean of the observed values}
+      \item{\code{observed_mean}}{The arithmetic mean of the observations}
     % result  
       \item{\code{r2}}{The conventional squared correlation coefficient}
-      \item{\code{rmse}}{The root mean square error}
+      \item{\code{rmse}}{The root mean square error with regard to the degree's of freedom \eqn{\nu}{\nu}}
+      \item{\code{nu}}{The degree's of freedom}
     %% ...
     }
   }
-  \subsection{Prediction result list}{
+  \subsection{Prediction performance}{
+    This part contains the measurements regarding the prediction power of model \var{M} which ia applied to an external data set.
   %prediction power
-      \describe{
+    \describe{
     %
-      \item{\code{datatable}}{Contains the observed value and its prediction by the model}
-      \item{\code{datatable_columns}}{The explanation of the datatable's column names}
+      \item{\code{data}}{Contains the observations and their predictions by \var{M}}
+      \item{\code{data.col}}{The explanation of data's column names}
       \item{\code{nTrainingSet}}{The number of elements in the model set (\eqn{N-k}{N-k})}
-      \item{\code{nTestSet}}{The number of elements in the prediction set (\eqn{k}{k})}
+      \item{\code{nTestSet}}{The number of elements in the prediction set (\var{k})}
     %result
       \item{\code{q2}}{The predictive squared correlation coefficient}
-      \item{\code{rmse}}{The root mean square error is calculated with Bessel's sample covariance correction, using \eqn{N-1}{N-1} in the denominator instead \eqn{N}{N} 
+      \item{\code{rmse}}{The root mean square with regard to the degree's of freedom \eqn{\nu}{\nu}}
+      \item{\code{nu}}{The degree's of freedom}
     %  According to Bessel's sample covariance correction, the root mean square error will be calculated using \eqn{N-1}}{N-1} in the denominator instead \eqn{N}}{N}
-      }
+%References Bessel's correction
+%http://mathworld.wolfram.com/BesselsCorrection.html
+%    Farebrother, R. W. Fitting Linear Relationships: A History of the Calculus of Observations 1750-1900. New York: Springer-Verlag, 1999.
+%Gauss, C. F. "Theoria combinationis obsevationum erroribus minimis obnoxiae." Werke, Vol. 4. Goettingen, Germany: p. 1, 1823.
+%Kenney, J. F. and Keeping, E. S. Mathematics of Statistics, Pt. 2, 2nd ed. Princeton, NJ: Van Nostrand, 1951. 
+% Oxford University Press, Dictionary of statistics, online available from university 
+% http://www.oxfordreference.com
+% http://www.oxfordreference.com/view/10.1093/acref/9780199541454.001.0001/acref-9780199541454-e-1704?rskey=Vlbjn7&result=2159 
     }
   }
 }
@@ -79,6 +90,6 @@
 %%  ~~or \code{\linkS4class{CLASSNAME}} for links to other classes ~~~
 %%}
 \examples{
-showClass("q2")
+  showClass("q2")
 }
 \keyword{classes}

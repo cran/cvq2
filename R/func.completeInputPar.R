@@ -1,7 +1,7 @@
 func.completeInputPar <-
 function( input, output, apply_cv ){
 #    input$splitSizeDataSet = floor( nrow(data) / input$nFold )
-  input$decimalSplit = FALSE 
+  input$testSetSizeVaries = FALSE 
  
   if( apply_cv ){
     # minimum 2 groups
@@ -24,7 +24,6 @@ function( input, output, apply_cv ){
       cat("nRun (",input$nRun,") must not be smaller than 1, set it to 1\n")
       input$nRun <- 1
     }
-
     
     input$nTestSet = ceiling( nrow(input$predictData) / input$nFold )
     input$nTrainingSet = nrow(input$modelData) - input$nTestSet
@@ -32,12 +31,10 @@ function( input, output, apply_cv ){
   
     nTrainingSetMin = input$nTrainingSet
   
-  #do this checks only, if it is a cross validation
-#  if( apply_cv ){
     # no equal distribution size for test and training set possible
     # distribution can vary (test set + 1), (training set - 1)
     if( input$nTestSet != NROW(input$predictData) / input$nFold ){
-      input$decimalSplit = TRUE
+      input$testSetSizeVaries = TRUE
       decrement(nTrainingSetMin)
     }
   }

@@ -15,7 +15,7 @@ function( input, output ){
     writeLines( "", con = output$writeTarget )
   }
   
-  datatable_columns <- matrix(
+  data.col <- matrix(
     c(paste( "C", 1:2, sep =""), c("observed value", "predicted value") ),
     nrow = 2,
     ncol = 2,
@@ -23,35 +23,43 @@ function( input, output ){
     dimnames = list(NULL, c("abrev", "trans"))
   )
   
-  datatable <- cbind( input$modelData[,NCOL(input$modelData)], 1:nrow(input$modelData) )
-  colnames(datatable) <- datatable_columns[,"abrev"]
+  data <- cbind( input$modelData[,NCOL(input$modelData)], 1:nrow(input$modelData) )
+  colnames(data) <- data.col[,"abrev"]
 
-  tmp$pred_col <- datatable_columns[datatable_columns[,"trans"]=="predicted value", "abrev"]
+  tmp$obs_col <- data.col[data.col[,"trans"]=="observed value", "abrev"]
+  tmp$pred_col <- data.col[data.col[,"trans"]=="predicted value", "abrev"]
   
-  datatable[, tmp$pred_col] <- predict( model, input$modelData )
+  data[, tmp$pred_col] <- predict( model, input$modelData )
 
   if( !is.null(output$writeTarget) ){
     writeLines("Observed vs. predicted values: ", con = output$writeTarget)
-    cat( datatable_columns[,"abrev"], "\n", sep="\t", file = output$writeTarget )
-    write.table( round(datatable,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
+    cat( data.col[,"abrev"], "\n", sep="\t", file = output$writeTarget )
+    write.table( round(data,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
   
     writeLines("", con = output$writeTarget)
     writeLines("Table column names explanation:", con = output$writeTarget)
-    write.table( datatable_columns, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
+    write.table( data.col, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
 
     writeLines("---- End linear regression ----", con = output$writeTarget)
     writeLines("", con = output$writeTarget)
   }
   
+  #linear regression has per default a nu of 0
+  tmp$nu = 0
+  tmp$data.stat <- func.get_data_stats( data, tmp, "calibration", tmp$nu )
+      
   return( 
-    list(
-      "r2" = func.calcXSquare( datatable[, tmp$pred_col], input$modelData[,ncol(input$modelData)], observed_mean ),
-      "rmse" = func.calcRMSE( datatable[, tmp$pred_col], input$modelData[,ncol(input$modelData)] ),
+    list(  
+      #copy this values from stats
+      "r2" = tmp$data.stat$x2,
+      "rmse" = tmp$data.stat$rmse,
+      "observed_mean" = tmp$data.stat$observed_mean,
+      "predicted_mean" = tmp$data.stat$predicted_mean,
+
       "n" = nrow(input$modelData),
-      "datatable_columns" = datatable_columns,
-      "datatable" = datatable,
-      "observed_mean" = observed_mean,
-      "predicted_mean" = mean(datatable[, tmp$pred_col]),
+      "nu" = tmp$nu,
+      "data.col" = data.col,
+      "data" = data,
       "model" = model
     )      
   )

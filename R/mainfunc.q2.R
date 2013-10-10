@@ -1,6 +1,6 @@
 mainfunc.q2 <-
 function( modelData, predictData = NULL, formula = NULL, nFold = N, nRun = 1,
-round = 4, extOut = FALSE, extOutFile = NULL, func.call ){
+nu = 0, round = 4, extOut = FALSE, extOutFile = NULL, func.call ){
 #  call <- match.call()
 
   apply_cv <- FALSE
@@ -16,7 +16,9 @@ round = 4, extOut = FALSE, extOutFile = NULL, func.call ){
     "predictData" = predictData,
     "regressionFormula" = formula,
     "nFold" = nFold,
-    "nRun" = nRun
+    "nRun" = nRun,
+    #degrees of freedom
+    "nu" = nu
   )
 
   output <- list(
@@ -34,6 +36,7 @@ round = 4, extOut = FALSE, extOutFile = NULL, func.call ){
   tmp <- NULL
 
   if( !is.null(output$writeTarget) ){
+    writeLines( "---- INPUT ----", con = output$writeTarget )
     writeLines( "Model Data: ", con = output$writeTarget )
     write.table( input$modelData, file = output$writeTarget, sep="\t", row.names = FALSE )
 

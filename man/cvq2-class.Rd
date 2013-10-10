@@ -5,14 +5,13 @@
 \alias{show,cvq2-method}
 
 \title{Class \code{"cvq2"}}
-\description{
 %%  ~~ A concise (1-5 lines) description of what the class is. ~~
-  The class \code{"cvq2"} extends class \code{"\linkS4class{q2}"} and is used to store information about the model calibration and its prediction performance.
-  The prediction performance is calculated with a cross-validation.
+\description{
+  The class \code{"cvq2"} extends class \code{"\linkS4class{q2}"} and is used to store information about the model calibration, its prediction performance and the cross-validation applied to determine the prediction performance.
+%  The prediction performance is calculated with a cross-validation.
 }
 \section{Objects from the Class}{
   Objects can be created by calls of the form \code{new("cvq2", ...)}.
-%%  ~~ describe objects here ~~ 
 }
 \section{Slots}{
   \describe{
@@ -25,13 +24,11 @@
     \item{\code{output}}{A list of parameters like number formats, output restrictions or output targets.}
   }
 %%  \cr
-  
   \subsection{Linear regression and prediction result list}{
-
     These lists are inherted from the parent class \code{\linkS4class{q2}}.
     Differences caused by cross-validation appear in the prediction result list for:
     \describe{
-      \item{\code{datatable}}{Additionaly, for each observed value the model parameters used for prediction are stored, as well as the arithmetic mean of the training set
+      \item{\code{data}}{For each observation the model parameters used for the prediction are stored additionally as well as the arithmetic mean of the training set
       }
       \item{\code{nTrainingSet}}{The number of elements in \emph{one} training set (\eqn{N-k}{N-k}) plus an eventually variation.}
       \item{\code{nTestSet}}{The number of elements in \emph{one} test set (\eqn{k}{k}) minus an eventually variation.}
@@ -42,8 +39,8 @@
    %cross-validation
     \describe{
      %run parameter
-      \item{\code{decimalSplit}}{\emph{True}, if some test sets consist of \eqn{k-1}{k-1} elements.}
-      \item{\code{nFold}}{The model data set (\code{modelData}) is randomly partitioned into \var{n} equal sized (according to \code{decimalSplit}) test sets for each individual run.}  %The data set is split into this number of individual test sets
+      \item{\code{testSetSizeVaries}}{\emph{True}, if some test sets consist of \eqn{k-1}{k-1} elements.}
+      \item{\code{nFold}}{\code{modelData} is randomly split into \var{n} equal sized (according to \code{testSetSizeVaries}) test sets for each individual run.}  %The data set is split into this number of individual test sets
       \item{\code{nRun}}{The number of runs each value is predicted.}
     }
   }

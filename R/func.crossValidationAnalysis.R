@@ -3,43 +3,43 @@ function( input, output ){
   tmp <- NULL
   samp <- NULL
   
-  cv.datatable <- data.frame(
+  cv.data <- data.frame(
     cbind(
       "no" = numeric(0),
-      "meanY.LXO" = numeric(0), 
+      "obs_mean" = numeric(0), 
       "obs" = numeric(0), 
       "pred" = numeric(0)
     )
   )
 
   # extend the dataframe for the regression values
-  cv.datatable <- func.extendDataframeForRegValues( cv.datatable, output$coefficients )
-  cv.datatable_columns <- matrix(
-    c(paste( "C", 1:NCOL(cv.datatable), sep =""), letters[1:NCOL(cv.datatable)]),
-    nrow = NCOL(cv.datatable),
+  cv.data <- func.extendDataframeForRegValues( cv.data, output$coefficients )
+  cv.data.col <- matrix(
+    c(paste( "C", 1:NCOL(cv.data), sep =""), letters[1:NCOL(cv.data)]),
+    nrow = NCOL(cv.data),
     ncol = 2,
     byrow = FALSE,
     dimnames = list(NULL, c("abrev", "trans"))
   )
-  colnames(cv.datatable) <- cv.datatable_columns[,"abrev"]
+  colnames(cv.data) <- cv.data.col[,"abrev"]
 
-  tmp$colnames <- c( "no in modelData", "Y_mean^training", "observed value", "predicted value" )
+  tmp$colnames <- c( "no in modelData", "observed mean", "observed value", "predicted value" )
 
-  cv.datatable_columns[1:NROW(tmp$colnames),"trans"] <- tmp$colnames
+  cv.data.col[1:NROW(tmp$colnames),"trans"] <- tmp$colnames
   tmp$colnames.i <- NROW(tmp$colnames) + 1
 
   if(names(output$coefficients)[1] == "(Intercept)"){
-    cv.datatable_columns[tmp$colnames.i,"trans"] <- "const"
+    cv.data.col[tmp$colnames.i,"trans"] <- "const"
     increment(tmp$colnames.i)
   }
   
-  for( i in tmp$colnames.i:NCOL(cv.datatable) )
-    cv.datatable_columns[i,"trans"] <- letters[i - tmp$colnames.i + 1]
+  for( i in tmp$colnames.i:NCOL(cv.data) )
+    cv.data.col[i,"trans"] <- letters[i - tmp$colnames.i + 1]
 
-  tmp$cv$no_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="no in modelData", "abrev"]
-  tmp$cv$pred_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="predicted value", "abrev"]
-  tmp$cv$obs_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="observed value", "abrev"]
-  tmp$cv$meanY_col <- cv.datatable_columns[cv.datatable_columns[,"trans"]=="Y_mean^training", "abrev"]
+  tmp$cv$no_col <- cv.data.col[cv.data.col[,"trans"]=="no in modelData", "abrev"]
+  tmp$cv$pred_col <- cv.data.col[cv.data.col[,"trans"]=="predicted value", "abrev"]
+  tmp$cv$obs_col <- cv.data.col[cv.data.col[,"trans"]=="observed value", "abrev"]
+  tmp$cv$obs_mean_col <- cv.data.col[cv.data.col[,"trans"]=="observed mean", "abrev"]
 
   #perform cross validation
   samp$no = 1 
@@ -65,15 +65,15 @@ function( input, output ){
       if(input$nRun == 1)
         tmp$rowNo <- rownames(samp$testSet)
       else
-        tmp$rowNo <- 1:nrow(samp$testSet)+NROW(cv.datatable)
+        tmp$rowNo <- 1:nrow(samp$testSet)+NROW(cv.data)
 
-      cv.datatable[tmp$rowNo, tmp$cv$pred_col] <- predict(samp$model, samp$testSet)
-      cv.datatable[tmp$rowNo, tmp$cv$obs_col] <- samp$testSet[, ncol(input$modelData)]
-      cv.datatable[tmp$rowNo, tmp$cv$meanY_col] <- rep( mean(samp$trainingSet[, ncol(input$modelData)]), NROW(tmp$rowNo))
-      cv.datatable[tmp$rowNo, tmp$cv$no_col] <- as.numeric(rownames(samp$testSet))
+      cv.data[tmp$rowNo, tmp$cv$pred_col] <- predict(samp$model, samp$testSet)
+      cv.data[tmp$rowNo, tmp$cv$obs_col] <- samp$testSet[, ncol(input$modelData)]
+      cv.data[tmp$rowNo, tmp$cv$obs_mean_col] <- rep( mean(samp$trainingSet[, ncol(input$modelData)]), NROW(tmp$rowNo))
+      cv.data[tmp$rowNo, tmp$cv$no_col] <- as.numeric(rownames(samp$testSet))
      
       for(c in 1:NROW(output$coefficients) )
-        cv.datatable[tmp$rowNo, ncol(cv.datatable)-NROW(output$coefficients)+c] <- rep( samp$model$coefficients[c], NROW(tmp$rowNo))
+        cv.data[tmp$rowNo, ncol(cv.data)-NROW(output$coefficients)+c] <- rep( samp$model$coefficients[c], NROW(tmp$rowNo))
                                                                                                
       samp$orderThisRun <- samp$orderThisRun[-c(1:NROW(samp$rows))]
   
@@ -86,34 +86,33 @@ function( input, output ){
       }
       increment(samp$no)
     }
-#    tmp$rmse[iRun] <- func.calcRMSE(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], TRUE)
 
     increment(iRun)
   }
 
   #copy it unsorted  
-  pred.datatable <- cv.datatable
-#  print(order(pred.datatable[tmp$cv$no_col,]))
-  pred.datatable <- pred.datatable[order(pred.datatable[,tmp$cv$no_col]),]
-  pred.datatable <- pred.datatable[ ,c(tmp$cv$no_col, tmp$cv$obs_col, tmp$cv$pred_col) ]
+  pred.data <- cv.data
+#  print(order(pred.data[tmp$cv$no_col,]))
+  pred.data <- pred.data[order(pred.data[,tmp$cv$no_col]),]
+  pred.data <- pred.data[ ,c(tmp$cv$no_col, tmp$cv$obs_col, tmp$cv$pred_col) ]
 
-  # sort the cv.datatable in case of sample fractioning
-#  pred.datatable <- pred.datatable[order(pred.datatable[tmp$cv$no_col,]),]
-#  print(cv.datatable)
-#  print(pred.datatable)
+  # sort the cv.data in case of sample fractioning
+#  pred.data <- pred.data[order(pred.data[tmp$cv$no_col,]),]
+#  print(cv.data)
+#  print(pred.data)
 
   tmp$pred$colnames <- c( "no in modelData", "observed value", "predicted value" )
 
-  pred.datatable_columns <- matrix(                                                                                  
-    c(paste( "C", 1:NCOL(pred.datatable), sep =""), letters[1:NCOL(pred.datatable)]),
-    nrow = NCOL(pred.datatable),
+  pred.data.col <- matrix(                                                                                  
+    c(paste( "C", 1:NCOL(pred.data), sep =""), letters[1:NCOL(pred.data)]),
+    nrow = NCOL(pred.data),
     ncol = 2,
     byrow = FALSE,
     dimnames = list(NULL, c("abrev", "trans"))
   )
 
-  colnames(pred.datatable) <- pred.datatable_columns[,"abrev"]
-  pred.datatable_columns[1:NROW(tmp$pred$colnames),"trans"] <- tmp$pred$colnames
+  colnames(pred.data) <- pred.data.col[,"abrev"]
+  pred.data.col[1:NROW(tmp$pred$colnames),"trans"] <- tmp$pred$colnames
 
   if( !is.null(output$writeTarget) ){
     writeLines("-- Start OVERVIEW Parameter Cross Validation --", con = output$writeTarget)
@@ -126,13 +125,13 @@ function( input, output ){
 
   if( !is.null(output$writeTarget) ){
     writeLines("Data Table: ", con = output$writeTarget)
-    cat( cv.datatable_columns[,"abrev"], "\n", sep="\t", file = output$writeTarget )
+    cat( cv.data.col[,"abrev"], "\n", sep="\t", file = output$writeTarget )
   
-    write.table( round(cv.datatable,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
+    write.table( round(cv.data,output$round), file = output$writeTarget, sep="\t", row.names = FALSE, col.names = FALSE )
     writeLines("", con = output$writeTarget)
   
     writeLines("Data Table column names explanation:", con = output$writeTarget)
-    write.table( cv.datatable_columns, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
+    write.table( cv.data.col, file = output$writeTarget, sep="\t", row.names = FALSE, col.names=FALSE )
   
     writeLines("-- End OVERVIEW Parameter Cross Validation --", con = output$writeTarget)
     writeLines("", con = output$writeTarget)
@@ -145,29 +144,28 @@ function( input, output ){
     "nTrainingSet" = input$nTrainingSet,
     #
     "nFold" = input$nFold,
-    "decimalSplit" = input$decimalSplit,
+    "testSetSizeVaries" = input$testSetSizeVaries,
     #rewrite this value(s)
     "nRun" = input$nRun,
     
-    "datatable" = cv.datatable,
-    "datatable_columns" = cv.datatable_columns,
+    "data" = cv.data,
+    "data.col" = cv.data.col,
     "TestSet" = tmp$testSet
   )
+  
+  tmp$data.stat <- func.get_data_stats( cv.data, tmp$cv, "prediction", input$nu )
     
   tmp$res$pred = list(
     "nTestSet" = input$nTestSet,
     "nTrainingSet" = input$nTrainingSet,
-    #at least the mean column must be from cv.datatable
-    "q2" = func.calcXSquare(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], cv.datatable[,tmp$cv$meanY_col] ),
-    # berechnet man den kompletten Datensatz mit einem Model -> N
-    # berechnet man nur eine Stichprobe des Datensatzes mit einem Model -> n-1, cross validation ist Stichprobe, da nur x-Elemente vorhergesagt werden
-    #one can use here pred.datatable as well
-    # but because the headers tmp$cv$pred_col ... are defined for cv.datatable
-    "rmse" = func.calcRMSE(cv.datatable[,tmp$cv$pred_col], cv.datatable[,tmp$cv$obs_col], TRUE),
-    "observed_mean" = mean(cv.datatable[, tmp$cv$obs_col]),
-    "predicted_mean" = mean(cv.datatable[, tmp$cv$pred_col]),
-    "datatable" = pred.datatable,
-    "datatable_columns" = pred.datatable_columns
+    #copy this values from stats
+    "q2" = tmp$data.stat$x2, #q2 with y_mean_i-1(training) - cv 
+    "rmse" = tmp$data.stat$rmse,
+    "observed_mean" = tmp$data.stat$observed_mean,
+    "predicted_mean" = tmp$data.stat$predicted_mean,
+    "nu" = input$nu,
+    "data" = pred.data,
+    "data.col" = pred.data.col
   )
 
   #number of different test sets is missing
